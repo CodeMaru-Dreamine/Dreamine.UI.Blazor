@@ -1,0 +1,20 @@
+.dreamine-expander {
+    border: 1px solid #2D4A6E;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.dreamine-expander-header {
+    background-color: #E9EEF5;
+    color: #0D1B3E;
+    font-weight: 700;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dreamine-expander-content {
+    padding: 12px;
+}

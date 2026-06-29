@@ -1,0 +1,69 @@
+@implements IDisposable
+@inject DreamineDialogService DialogService
+
+@if (DialogService.Current is { } request)
+{
+    var blinkOn = _blinkPhase && request.UseBlink;
+    var background = blinkOn ? request.Color2 : request.Color1;
+
+    <div class="dreamine-dialog-backdrop">
+        <div class="dreamine-dialog-card" style="background-color:@background; color:@request.ForegroundColor;">
+            <div class="dreamine-dialog-title">@request.Title</div>
+            <div class="dreamine-dialog-message">
+                @request.Message
+                @if (request.AutoClickRemainingSeconds > 0)
+                {
+                    <div class="dreamine-dialog-countdown">(@(request.AutoClickRemainingSeconds)초 후 자동으로 닫힙니다)</div>
+                }
+            </div>
+            <div class="dreamine-dialog-buttons">
+                @foreach (var (result, text) in request.Buttons)
+                {
+                    <button class="dreamine-dialog-button" @onclick="() => DialogService.Complete(result)">@text</button>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _blinkPhase;
+    private System.Threading.Timer? _blinkTimer;
+    private System.Threading.Timer? _secondTimer;
+
+    protected override void OnInitialized()
+    {
+        DialogService.RequestChanged += OnRequestChanged;
+
+        // 1초마다 자동닫힘 카운트다운을 갱신한다.
+        _secondTimer = new System.Threading.Timer(_ =>
+        {
+            DialogService.TickAutoClick();
+        }, null, 1000, 1000);
+    }
+
+    private void OnRequestChanged()
+    {
+        _blinkTimer?.Dispose();
+        _blinkTimer = null;
+        _blinkPhase = false;
+
+        if (DialogService.Current is { UseBlink: true } request)
+        {
+            _blinkTimer = new System.Threading.Timer(_ =>
+            {
+                _blinkPhase = !_blinkPhase;
+                InvokeAsync(StateHasChanged);
+            }, null, request.BlinkIntervalMs, request.BlinkIntervalMs);
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        DialogService.RequestChanged -= OnRequestChanged;
+        _blinkTimer?.Dispose();
+        _secondTimer?.Dispose();
+    }
+}

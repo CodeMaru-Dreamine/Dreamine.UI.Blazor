@@ -1,0 +1,28 @@
+@*
+    WPF/WinForms/MAUI의 DreamineCheckLed와 동일한 개념의 Blazor용 상태 LED.
+    HTML/CSS에는 대응 컨트롤이 없어서 직접 만들었다.
+*@
+
+<span class="dreamine-led @(IsOn ? "dreamine-led-on" : "dreamine-led-off") @(IsOn && IsPulse ? "dreamine-led-pulse" : "")"
+      style="width:@(Diameter)px; height:@(Diameter)px; @CornerStyle"></span>
+
+@code {
+    [Parameter] public bool IsOn { get; set; }
+    [Parameter] public bool IsPulse { get; set; }
+    [Parameter] public double Diameter { get; set; } = 24;
+
+    /// <summary>
+    /// 부모가 position:relative인 컨테이너일 때, 이 LED를 모서리에 배지처럼 붙이고 싶으면
+    /// 지정한다(WPF DreamineCheckLed.Corner와 동일한 개념). 지정하지 않으면 일반 인라인 배치.
+    /// </summary>
+    [Parameter] public DreamineCheckLedCorner? Corner { get; set; }
+
+    private string CornerStyle => Corner switch
+    {
+        DreamineCheckLedCorner.TopLeft => "position:absolute; top:4px; left:4px;",
+        DreamineCheckLedCorner.TopRight => "position:absolute; top:4px; right:4px;",
+        DreamineCheckLedCorner.BottomLeft => "position:absolute; bottom:4px; left:4px;",
+        DreamineCheckLedCorner.BottomRight => "position:absolute; bottom:4px; right:4px;",
+        _ => string.Empty
+    };
+}

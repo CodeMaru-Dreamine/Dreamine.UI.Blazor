@@ -1,0 +1,122 @@
+@*
+    WPF/WinForms/MAUI 가상 키보드와 동일한 목적의 Blazor용 화면 키보드 데모.
+    데스크톱 브라우저는 입력창을 클릭해도 화면 키보드가 뜨지 않으므로(터치 기기만 자동으로
+    뜸), 다른 플랫폼들과 시각적으로 동일한 느낌을 보여주기 위한 데모 컴포넌트다.
+    표준 미국식 키보드 기호 배열을 흉내내며, 한글 조합은 지원하지 않는다.
+    JS 인터롭 없이 동작하도록 커서 위치 추적은 하지 않고 끝에 추가/끝에서 삭제만 한다.
+*@
+
+@if (IsVisible)
+{
+    <div class="dreamine-vk">
+        <div class="dreamine-vk-row">
+            @foreach (var key in NumberRow)
+            {
+                <button type="button" class="dreamine-vk-key" @onclick="() => Insert(IsShifted ? key.Shifted : key.Normal)">@(IsShifted ? key.Shifted : key.Normal)</button>
+            }
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-wide" @onclick="Backspace">⌫</button>
+        </div>
+
+        <div class="dreamine-vk-row">
+            @foreach (var key in Row2)
+            {
+                <button type="button" class="dreamine-vk-key" @onclick="() => Insert(IsShifted ? key.Shifted : key.Normal)">@(IsShifted ? key.Shifted : key.Normal)</button>
+            }
+        </div>
+
+        <div class="dreamine-vk-row">
+            @foreach (var key in Row3)
+            {
+                <button type="button" class="dreamine-vk-key" @onclick="() => Insert(IsShifted ? key.Shifted : key.Normal)">@(IsShifted ? key.Shifted : key.Normal)</button>
+            }
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-wide" @onclick="OnEnterClicked">Enter</button>
+        </div>
+
+        <div class="dreamine-vk-row">
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-shift @ShiftButtonClass" @onclick="OnShiftTapped">⇧</button>
+            @foreach (var key in Row4)
+            {
+                <button type="button" class="dreamine-vk-key" @onclick="() => Insert(IsShifted ? key.Shifted : key.Normal)">@(IsShifted ? key.Shifted : key.Normal)</button>
+            }
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-shift @ShiftButtonClass" @onclick="OnShiftTapped">⇧</button>
+        </div>
+
+        <div class="dreamine-vk-row">
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-space" @onclick='() => Insert(" ")'>Space</button>
+        </div>
+    </div>
+}
+
+@code {
+    private static readonly (string Normal, string Shifted)[] NumberRow =
+    {
+        ("1", "!"), ("2", "@"), ("3", "#"), ("4", "$"), ("5", "%"),
+        ("6", "^"), ("7", "&"), ("8", "*"), ("9", "("), ("0", ")"),
+        ("-", "_"), ("=", "+"),
+    };
+
+    private static readonly (string Normal, string Shifted)[] Row2 =
+    {
+        ("q", "Q"), ("w", "W"), ("e", "E"), ("r", "R"), ("t", "T"), ("y", "Y"),
+        ("u", "U"), ("i", "I"), ("o", "O"), ("p", "P"), ("[", "{"), ("]", "}"),
+    };
+
+    private static readonly (string Normal, string Shifted)[] Row3 =
+    {
+        ("a", "A"), ("s", "S"), ("d", "D"), ("f", "F"), ("g", "G"), ("h", "H"),
+        ("j", "J"), ("k", "K"), ("l", "L"), (";", ":"), ("'", "\""),
+    };
+
+    private static readonly (string Normal, string Shifted)[] Row4 =
+    {
+        ("z", "Z"), ("x", "X"), ("c", "C"), ("v", "V"), ("b", "B"), ("n", "N"),
+        ("m", "M"), (",", "<"), (".", ">"), ("/", "?"),
+    };
+
+    private enum ShiftState { Off, Once, Lock }
+
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public EventCallback OnEnter { get; set; }
+
+    private ShiftState _shift = ShiftState.Off;
+    private DateTime _lastShiftTap = DateTime.MinValue;
+
+    private bool IsShifted => _shift != ShiftState.Off;
+    private string ShiftButtonClass => IsShifted ? "active" : "";
+
+    private async Task Insert(string text)
+    {
+        Value += text;
+        await ValueChanged.InvokeAsync(Value);
+
+        // 한 번 탭(Once) = 다음 글자만 대문자(모바일 키보드와 동일하게 자동 해제).
+        // 더블탭(Lock)으로 고정한 경우는 글자를 입력해도 풀리지 않는다.
+        if (_shift == ShiftState.Once)
+        {
+            _shift = ShiftState.Off;
+        }
+    }
+
+    private async Task Backspace()
+    {
+        if (Value.Length == 0) return;
+        Value = Value[..^1];
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private void OnShiftTapped()
+    {
+        // JS 인터롭 없이도 두 클릭 사이의 서버 왕복 시간만으로 더블탭을 판별한다
+        // (MAUI 가상 키보드와 동일한 방식).
+        var isDoubleTap = (DateTime.Now - _lastShiftTap).TotalMilliseconds < 400;
+        _lastShiftTap = DateTime.Now;
+
+        _shift = isDoubleTap
+            ? (_shift == ShiftState.Lock ? ShiftState.Off : ShiftState.Lock)
+            : (_shift == ShiftState.Off ? ShiftState.Once : ShiftState.Off);
+    }
+
+    private Task OnEnterClicked() => OnEnter.InvokeAsync();
+}

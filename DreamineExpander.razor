@@ -1,0 +1,30 @@
+@*
+    WPF/WinForms/MAUI의 DreamineExpander와 동일한 개념의 Blazor용 접기/펼치기 패널.
+*@
+
+<div class="dreamine-expander">
+    <div class="dreamine-expander-header" @onclick="Toggle">
+        <span class="dreamine-expander-arrow">@(IsExpanded ? "▼" : "▶")</span>
+        <span class="dreamine-expander-header-text">@Header</span>
+    </div>
+
+    @if (IsExpanded)
+    {
+        <div class="dreamine-expander-content">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Header { get; set; } = string.Empty;
+    [Parameter] public bool IsExpanded { get; set; } = true;
+    [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private async Task Toggle()
+    {
+        IsExpanded = !IsExpanded;
+        await IsExpandedChanged.InvokeAsync(IsExpanded);
+    }
+}

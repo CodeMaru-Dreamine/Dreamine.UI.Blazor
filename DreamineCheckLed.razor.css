@@ -1,0 +1,25 @@
+.dreamine-led {
+    display: inline-block;
+    border-radius: 50%;
+    border: 1.5px solid #556677;
+    box-sizing: border-box;
+}
+
+.dreamine-led-on {
+    background-color: #1FD36B;
+    border-color: #7DD9B7;
+    box-shadow: 0 0 6px 1px rgba(31, 211, 107, 0.7);
+}
+
+.dreamine-led-off {
+    background-color: #1A2A1A;
+}
+
+.dreamine-led-pulse {
+    animation: dreamine-led-pulse-anim 0.9s ease-in-out infinite;
+}
+
+@keyframes dreamine-led-pulse-anim {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+}

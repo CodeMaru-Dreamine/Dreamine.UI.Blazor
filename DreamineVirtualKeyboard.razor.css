@@ -1,0 +1,45 @@
+.dreamine-vk {
+    background-color: #0F1E3A;
+    border: 1px solid #2D4A6E;
+    border-radius: 8px;
+    padding: 8px;
+    max-width: 480px;
+}
+
+.dreamine-vk-row {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    margin-bottom: 3px;
+}
+
+.dreamine-vk-key {
+    background-color: #16284D;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.dreamine-vk-key:hover {
+    background-color: #1E3A6E;
+}
+
+.dreamine-vk-key-wide {
+    min-width: 56px;
+}
+
+.dreamine-vk-key-shift {
+    min-width: 44px;
+}
+
+.dreamine-vk-key-shift.active {
+    background-color: #0d6efd;
+}
+
+.dreamine-vk-key-space {
+    min-width: 260px;
+}
