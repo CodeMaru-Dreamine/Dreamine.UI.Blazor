@@ -1,122 +1,451 @@
 @*
-    WPF/WinForms/MAUI 가상 키보드와 동일한 목적의 Blazor용 화면 키보드 데모.
-    데스크톱 브라우저는 입력창을 클릭해도 화면 키보드가 뜨지 않으므로(터치 기기만 자동으로
-    뜸), 다른 플랫폼들과 시각적으로 동일한 느낌을 보여주기 위한 데모 컴포넌트다.
-    표준 미국식 키보드 기호 배열을 흉내내며, 한글 조합은 지원하지 않는다.
-    JS 인터롭 없이 동작하도록 커서 위치 추적은 하지 않고 끝에 추가/끝에서 삭제만 한다.
+    WPF Dreamine.UI.Wpf.Equipment.DreamineVirtualKeyboard의 Blazor 버전.
+    브라우저 환경이라 OS 훅/IME 주입은 불가하므로, JS interop으로 "최근 포커스된 텍스트 input"에 직접 편집을 적용한다.
+
+    - 5행 풀 키보드 레이아웃 (Esc/숫자·qwerty·asdf·zxcv·Space)
+    - Shift 토글, CapsLock 표시(브라우저 상태), Ctrl 표시(비활성)
+    - 한/영(IME) 토글: 영문 <-> 한글 자모 입력
+    - 언어(LangBtn): EN <-> KR 표시 전환
+    - 실제 캐럿 위치를 JS로 읽어 정확히 그 위치에 삽입/삭제
+    - 대상 input이 없으면 Value/ValueChanged로 폴백(옛 API 호환)
 *@
+
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 @if (IsVisible)
 {
-    <div class="dreamine-vk">
+    <div class="dreamine-vk" @onkeyup="OnHostKeyUp" tabindex="-1">
+        @* Row 0: Esc/숫자/=/Backspace *@
         <div class="dreamine-vk-row">
-            @foreach (var key in NumberRow)
-            {
-                <button type="button" class="dreamine-vk-key" @onclick="() => Insert(IsShifted ? key.Shifted : key.Normal)">@(IsShifted ? key.Shifted : key.Normal)</button>
-            }
-            <button type="button" class="dreamine-vk-key dreamine-vk-key-wide" @onclick="Backspace">⌫</button>
-        </div>
-
-        <div class="dreamine-vk-row">
-            @foreach (var key in Row2)
-            {
-                <button type="button" class="dreamine-vk-key" @onclick="() => Insert(IsShifted ? key.Shifted : key.Normal)">@(IsShifted ? key.Shifted : key.Normal)</button>
+            @foreach (var k in Row0) {
+                <button type="button" class="dreamine-vk-key @KeyClass(k)"
+                        tabindex="-1"
+                        @onmousedown:preventDefault="true"
+                        @onpointerdown:preventDefault="true"
+                        @onclick="() => OnKeyClick(k)">@KeyLabel(k)</button>
             }
         </div>
 
+        @* Row 1: Tab/qwerty/[]\ (WPF 레이아웃과 동일: Backspace는 Row 0에만) *@
         <div class="dreamine-vk-row">
-            @foreach (var key in Row3)
-            {
-                <button type="button" class="dreamine-vk-key" @onclick="() => Insert(IsShifted ? key.Shifted : key.Normal)">@(IsShifted ? key.Shifted : key.Normal)</button>
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-md"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick='() => Insert("    ")'>Tab</button>
+            @foreach (var k in Row1) {
+                <button type="button" class="dreamine-vk-key"
+                        tabindex="-1"
+                        @onmousedown:preventDefault="true"
+                        @onpointerdown:preventDefault="true"
+                        @onclick="() => OnKeyClick(k)">@KeyLabel(k)</button>
             }
-            <button type="button" class="dreamine-vk-key dreamine-vk-key-wide" @onclick="OnEnterClicked">Enter</button>
         </div>
 
+        @* Row 2: CapsLock/asdf/Enter *@
         <div class="dreamine-vk-row">
-            <button type="button" class="dreamine-vk-key dreamine-vk-key-shift @ShiftButtonClass" @onclick="OnShiftTapped">⇧</button>
-            @foreach (var key in Row4)
-            {
-                <button type="button" class="dreamine-vk-key" @onclick="() => Insert(IsShifted ? key.Shifted : key.Normal)">@(IsShifted ? key.Shifted : key.Normal)</button>
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-lg @(IsPressedCapsLock ? "is-active" : "")"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick="ToggleCapsLock">
+                <span class="dreamine-vk-label-full">Caps Lock</span>
+                <span class="dreamine-vk-label-short">Caps</span>
+            </button>
+            @foreach (var k in Row2) {
+                <button type="button" class="dreamine-vk-key"
+                        tabindex="-1"
+                        @onmousedown:preventDefault="true"
+                        @onpointerdown:preventDefault="true"
+                        @onclick="() => OnKeyClick(k)">@KeyLabel(k)</button>
             }
-            <button type="button" class="dreamine-vk-key dreamine-vk-key-shift @ShiftButtonClass" @onclick="OnShiftTapped">⇧</button>
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-lg"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick="OnEnterClicked">
+                <span class="dreamine-vk-label-full">Enter</span>
+                <span class="dreamine-vk-label-short">↵</span>
+            </button>
         </div>
 
+        @* Row 3: Shift/zxcv/화살표 *@
         <div class="dreamine-vk-row">
-            <button type="button" class="dreamine-vk-key dreamine-vk-key-space" @onclick='() => Insert(" ")'>Space</button>
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-lg @(IsPressedShift ? "is-active" : "")"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick="ToggleShift">
+                <span class="dreamine-vk-label-full">Shift</span>
+                <span class="dreamine-vk-label-short">⇧</span>
+            </button>
+            @foreach (var k in Row3) {
+                <button type="button" class="dreamine-vk-key"
+                        tabindex="-1"
+                        @onmousedown:preventDefault="true"
+                        @onpointerdown:preventDefault="true"
+                        @onclick="() => OnKeyClick(k)">@KeyLabel(k)</button>
+            }
+            <button type="button" class="dreamine-vk-key"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick="MoveCaretLeft">◀</button>
+            <button type="button" class="dreamine-vk-key"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick="MoveCaretRight">▶</button>
+        </div>
+
+        @* Row 4: Ctrl/Space/한영/언어 *@
+        <div class="dreamine-vk-row">
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-md"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true">Ctrl</button>
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-space"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick='() => Insert(" ")'>
+                <span class="dreamine-vk-label-full">Space</span>
+                <span class="dreamine-vk-label-short">␣</span>
+            </button>
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-md"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick="ToggleImeMode">@ImeButtonLabel</button>
+            <button type="button" class="dreamine-vk-key dreamine-vk-key-md"
+                    tabindex="-1"
+                    @onmousedown:preventDefault="true"
+                    @onpointerdown:preventDefault="true"
+                    @onclick="ToggleLanguage">@LangButtonLabel</button>
         </div>
     </div>
 }
 
 @code {
-    private static readonly (string Normal, string Shifted)[] NumberRow =
-    {
-        ("1", "!"), ("2", "@"), ("3", "#"), ("4", "$"), ("5", "%"),
-        ("6", "^"), ("7", "&"), ("8", "*"), ("9", "("), ("0", ")"),
-        ("-", "_"), ("=", "+"),
-    };
-
-    private static readonly (string Normal, string Shifted)[] Row2 =
-    {
-        ("q", "Q"), ("w", "W"), ("e", "E"), ("r", "R"), ("t", "T"), ("y", "Y"),
-        ("u", "U"), ("i", "I"), ("o", "O"), ("p", "P"), ("[", "{"), ("]", "}"),
-    };
-
-    private static readonly (string Normal, string Shifted)[] Row3 =
-    {
-        ("a", "A"), ("s", "S"), ("d", "D"), ("f", "F"), ("g", "G"), ("h", "H"),
-        ("j", "J"), ("k", "K"), ("l", "L"), (";", ":"), ("'", "\""),
-    };
-
-    private static readonly (string Normal, string Shifted)[] Row4 =
-    {
-        ("z", "Z"), ("x", "X"), ("c", "C"), ("v", "V"), ("b", "B"), ("n", "N"),
-        ("m", "M"), (",", "<"), (".", ">"), ("/", "?"),
-    };
-
-    private enum ShiftState { Off, Once, Lock }
-
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public string Value { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
     [Parameter] public EventCallback OnEnter { get; set; }
 
-    private ShiftState _shift = ShiftState.Off;
-    private DateTime _lastShiftTap = DateTime.MinValue;
+    // 상태
+    private bool VirtualShift;
+    private bool PhysicalShift;
+    private bool VirtualCapsLock;
+    private bool PhysicalCapsLock;
+    private bool CurrentLangKorean;   // false = en_US, true = ko_KR
+    private bool ImeMode;             // false = 자모/영문 입력 모드, true = 한글 조합 모드
+    private readonly HangulComposer _composer = new();
+    private bool IsPressedShift => VirtualShift || PhysicalShift;
+    private bool IsPressedCapsLock => VirtualCapsLock || PhysicalCapsLock;
 
-    private bool IsShifted => _shift != ShiftState.Off;
-    private string ShiftButtonClass => IsShifted ? "active" : "";
+    // JS 헬퍼 모듈 참조 (없으면 폴백)
+    private IJSObjectReference? _js;
+    private DotNetObjectReference<DreamineVirtualKeyboard>? _dotNetRef;
+
+    private string LangButtonLabel => CurrentLangKorean ? "KR" : "US";
+    private string ImeButtonLabel => CurrentLangKorean ? (ImeMode ? "가" : "abc") : "abc";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _js = await JS.InvokeAsync<IJSObjectReference>(
+                    "import", "./_content/Dreamine.UI.Blazor/dreamine-vk.js");
+                _dotNetRef = DotNetObjectReference.Create(this);
+                await _js.InvokeVoidAsync("subscribeKeyboardState", _dotNetRef);
+            }
+            catch
+            {
+                // 정적 파일 서빙이 안 되는 환경(테스트/사전 렌더 등)에서는 폴백 사용.
+                _js = null;
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_js is not null)
+        {
+            try
+            {
+                if (_dotNetRef is not null)
+                    await _js.InvokeVoidAsync("unsubscribeKeyboardState", _dotNetRef);
+            }
+            catch { /* ignore */ }
+
+            try { await _js.DisposeAsync(); } catch { /* ignore */ }
+        }
+
+        _dotNetRef?.Dispose();
+    }
+
+    // 키 매핑 — WPF Key.cs 배열과 개념 동일
+    private sealed record KeyMap(string Normal, string Shifted = "", string Korean = "", string KoreanShifted = "", string Label = "");
+
+    private static readonly KeyMap[] Row0 =
+    {
+        new("Esc", Label: "Esc"),
+        new("`", "~"),
+        new("1", "!"), new("2", "@"), new("3", "#"), new("4", "$"), new("5", "%"),
+        new("6", "^"), new("7", "&"), new("8", "*"), new("9", "("), new("0", ")"),
+        new("-", "_"), new("=", "+"),
+        new("Backspace", Label: "⌫"),
+    };
+
+    private static readonly KeyMap[] Row1 =
+    {
+        new("q", "Q", "ㅂ", "ㅃ"), new("w", "W", "ㅈ", "ㅉ"), new("e", "E", "ㄷ", "ㄸ"),
+        new("r", "R", "ㄱ", "ㄲ"), new("t", "T", "ㅅ", "ㅆ"), new("y", "Y", "ㅛ"),
+        new("u", "U", "ㅕ"), new("i", "I", "ㅑ"), new("o", "O", "ㅐ", "ㅒ"),
+        new("p", "P", "ㅔ", "ㅖ"), new("[", "{"), new("]", "}"), new("\\", "|"),
+    };
+
+    private static readonly KeyMap[] Row2 =
+    {
+        new("a", "A", "ㅁ"), new("s", "S", "ㄴ"), new("d", "D", "ㅇ"),
+        new("f", "F", "ㄹ"), new("g", "G", "ㅎ"), new("h", "H", "ㅗ"),
+        new("j", "J", "ㅓ"), new("k", "K", "ㅏ"), new("l", "L", "ㅣ"),
+        new(";", ":"), new("'", "\""),
+    };
+
+    private static readonly KeyMap[] Row3 =
+    {
+        new("z", "Z", "ㅋ"), new("x", "X", "ㅌ"), new("c", "C", "ㅊ"),
+        new("v", "V", "ㅍ"), new("b", "B", "ㅠ"), new("n", "N", "ㅜ"),
+        new("m", "M", "ㅡ"),
+        new(",", "<"), new(".", ">"), new("/", "?"),
+    };
+
+    private string KeyLabel(KeyMap k)
+    {
+        if (!string.IsNullOrEmpty(k.Label))
+            return k.Label;
+
+        var isLetter = k.Normal.Length == 1 && char.IsLetter(k.Normal, 0);
+        var korActive = CurrentLangKorean && ImeMode;
+
+        if (korActive && !string.IsNullOrEmpty(k.Korean))
+        {
+            return IsPressedShift && !string.IsNullOrEmpty(k.KoreanShifted)
+                ? k.KoreanShifted
+                : k.Korean;
+        }
+
+        var showUpper = isLetter && (IsPressedShift ^ IsPressedCapsLock);
+        var displayShifted = IsPressedShift && !string.IsNullOrEmpty(k.Shifted);
+
+        if (displayShifted) return k.Shifted;
+        return showUpper ? k.Normal.ToUpper() : k.Normal;
+    }
+
+    private string KeyClass(KeyMap k)
+    {
+        if (k.Label == "Esc") return "dreamine-vk-key-sm";
+        if (k.Label == "⌫") return "dreamine-vk-key-md";
+        return string.Empty;
+    }
+
+    private async Task OnKeyClick(KeyMap k)
+    {
+        if (k.Label == "Esc")
+        {
+            _composer.Reset();
+            return;
+        }
+        if (k.Label == "⌫")
+        {
+            await Backspace();
+            return;
+        }
+
+        var text = KeyLabel(k);
+        await Insert(text);
+    }
+
+    // JS interop 결과 컨텍스트 — JS는 camelCase(value/start/end)로 넘기므로
+    // JsonPropertyName으로 매핑한다.
+    private sealed class VkContext
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("value")]
+        public string Value { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonPropertyName("start")]
+        public int Start { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("end")]
+        public int End { get; set; }
+    }
+
+    private async Task<VkContext?> GetContextAsync()
+    {
+        if (_js is null) return null;
+        try
+        {
+            // Non-nullable class: JS는 값(object) 또는 null을 반환. null이면 예외가 아니라
+            // 그냥 null 참조로 돌아온다. JSInterop이 nullable class를 직접 처리하지 못하는
+            // 경우가 있어 non-nullable로 받되 catch로 감싼다.
+            return await _js.InvokeAsync<VkContext>("getContext");
+        }
+        catch { return null; }
+    }
+
+    private async Task<bool> ApplyEditAsync(int replaceCount, string insertText)
+    {
+        if (_js is null) return false;
+        try
+        {
+            // JS는 실패 시 -1, 성공 시 새 캐럿 위치를 반환. int? 대신 int를 써서
+            // Blazor JSInterop의 nullable 캐스팅 이슈(InvalidCastException)를 회피.
+            var result = await _js.InvokeAsync<int>("applyEdit", replaceCount, insertText);
+            return result >= 0;
+        }
+        catch { return false; }
+    }
 
     private async Task Insert(string text)
     {
-        Value += text;
-        await ValueChanged.InvokeAsync(Value);
+        if (string.IsNullOrEmpty(text)) return;
 
-        // 한 번 탭(Once) = 다음 글자만 대문자(모바일 키보드와 동일하게 자동 해제).
-        // 더블탭(Lock)으로 고정한 경우는 글자를 입력해도 풀리지 않는다.
-        if (_shift == ShiftState.Once)
+        var ctx = await GetContextAsync();
+
+        // 한글 조합 모드 + 자모라면 HangulComposer로 처리
+        if (CurrentLangKorean && ImeMode && HangulComposer.IsComposableJamo(text))
         {
-            _shift = ShiftState.Off;
+            if (ctx is not null)
+            {
+                var before = ctx.Value[..Math.Clamp(ctx.Start, 0, ctx.Value.Length)];
+                var edit = _composer.Input(text, before);
+                if (await ApplyEditAsync(edit.ReplaceCount, edit.Text))
+                    return;
+            }
+
+            // 폴백: 로컬 Value 편집
+            await FallbackHangulInsertAsync(text);
+            return;
         }
+
+        // 일반 문자
+        _composer.Reset();
+        if (ctx is not null)
+        {
+            if (await ApplyEditAsync(0, text))
+                return;
+        }
+
+        await FallbackAppendAsync(text);
     }
 
     private async Task Backspace()
     {
-        if (Value.Length == 0) return;
+        _composer.Reset();
+        if (_js is not null)
+        {
+            try
+            {
+                // JS: 성공하면 새 캐럿 위치(>=0), 실패/대상없음이면 -1.
+                var result = await _js.InvokeAsync<int>("backspace");
+                if (result >= 0) return;
+            }
+            catch { }
+        }
+
+        // 폴백: Value 끝 한 글자 삭제
+        if (string.IsNullOrEmpty(Value)) return;
         Value = Value[..^1];
         await ValueChanged.InvokeAsync(Value);
     }
 
-    private void OnShiftTapped()
+    private async Task MoveCaretLeft()
     {
-        // JS 인터롭 없이도 두 클릭 사이의 서버 왕복 시간만으로 더블탭을 판별한다
-        // (MAUI 가상 키보드와 동일한 방식).
-        var isDoubleTap = (DateTime.Now - _lastShiftTap).TotalMilliseconds < 400;
-        _lastShiftTap = DateTime.Now;
-
-        _shift = isDoubleTap
-            ? (_shift == ShiftState.Lock ? ShiftState.Off : ShiftState.Lock)
-            : (_shift == ShiftState.Off ? ShiftState.Once : ShiftState.Off);
+        _composer.Reset();
+        if (_js is not null)
+        {
+            try { await _js.InvokeVoidAsync("moveCaret", -1); } catch { }
+        }
     }
 
-    private Task OnEnterClicked() => OnEnter.InvokeAsync();
+    private async Task MoveCaretRight()
+    {
+        _composer.Reset();
+        if (_js is not null)
+        {
+            try { await _js.InvokeVoidAsync("moveCaret", 1); } catch { }
+        }
+    }
+
+    // ── 폴백(로컬 Value 편집) ─────────────────────────────────
+    private async Task FallbackHangulInsertAsync(string text)
+    {
+        var before = Value ?? string.Empty;
+        var edit = _composer.Input(text, before);
+        var newBefore = edit.ReplaceCount > 0 && before.Length >= edit.ReplaceCount
+            ? before[..^edit.ReplaceCount] + edit.Text
+            : before + edit.Text;
+        Value = newBefore;
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private async Task FallbackAppendAsync(string text)
+    {
+        Value = (Value ?? string.Empty) + text;
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private void ToggleShift() => VirtualShift = !VirtualShift;
+
+    private void ToggleCapsLock()
+    {
+        VirtualCapsLock = !VirtualCapsLock;
+        _composer.Reset();
+    }
+
+    // 한/영 토글: 한국어 언어일 때만 abc <-> 가 전환. 영어 언어면 무효.
+    private void ToggleImeMode()
+    {
+        if (!CurrentLangKorean) return;
+        ImeMode = !ImeMode;
+        _composer.Reset();
+    }
+
+    // 언어 토글: EN <-> KR. 표시/조합 모드에만 영향.
+    private void ToggleLanguage()
+    {
+        CurrentLangKorean = !CurrentLangKorean;
+        ImeMode = CurrentLangKorean;      // 한국어로 오면 자동으로 한글 입력 모드
+        _composer.Reset();
+    }
+
+    private async Task OnEnterClicked()
+    {
+        _composer.Reset();
+        await OnEnter.InvokeAsync();
+    }
+
+    // 물리 키보드의 CapsLock 상태를 감지해 표시만 동기화한다.
+    private void OnHostKeyUp(KeyboardEventArgs e)
+    {
+        try
+        {
+            var caps = (bool)(typeof(KeyboardEventArgs).GetProperty("CapsLockOn")?.GetValue(e) ?? false);
+            if (caps != PhysicalCapsLock)
+                PhysicalCapsLock = caps;
+        }
+        catch { }
+    }
+
+    [Microsoft.JSInterop.JSInvokable]
+    public Task DreamineVkKeyboardStateChanged(bool shift, bool capsLock)
+    {
+        PhysicalShift = shift;
+        PhysicalCapsLock = capsLock;
+        return InvokeAsync(StateHasChanged);
+    }
 }
