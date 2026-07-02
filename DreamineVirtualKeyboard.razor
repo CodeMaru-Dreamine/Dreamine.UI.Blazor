@@ -1,13 +1,7 @@
 @*
-    WPF Dreamine.UI.Wpf.Equipment.DreamineVirtualKeyboard의 Blazor 버전.
-    브라우저 환경이라 OS 훅/IME 주입은 불가하므로, JS interop으로 "최근 포커스된 텍스트 input"에 직접 편집을 적용한다.
-
-    - 5행 풀 키보드 레이아웃 (Esc/숫자·qwerty·asdf·zxcv·Space)
-    - Shift 토글, CapsLock 표시(브라우저 상태), Ctrl 표시(비활성)
-    - 한/영(IME) 토글: 영문 <-> 한글 자모 입력
-    - 언어(LangBtn): EN <-> KR 표시 전환
-    - 실제 캐럿 위치를 JS로 읽어 정확히 그 위치에 삽입/삭제
-    - 대상 input이 없으면 Value/ValueChanged로 폴백(옛 API 호환)
+    Blazor version of WPF Dreamine.UI.Wpf.Equipment.DreamineVirtualKeyboard.
+    Browsers cannot use OS hooks or IME injection here, so JS interop edits the
+    most recently focused text input directly.
 *@
 
 @inject IJSRuntime JS
@@ -16,7 +10,7 @@
 @if (IsVisible)
 {
     <div class="dreamine-vk" @onkeyup="OnHostKeyUp" tabindex="-1">
-        @* Row 0: Esc/숫자/=/Backspace *@
+        @* Row 0: Esc/numbers/=/Backspace *@
         <div class="dreamine-vk-row">
             @foreach (var k in Row0) {
                 <button type="button" class="dreamine-vk-key @KeyClass(k)"
@@ -27,7 +21,7 @@
             }
         </div>
 
-        @* Row 1: Tab/qwerty/[]\ (WPF 레이아웃과 동일: Backspace는 Row 0에만) *@
+        @* Row 1: Tab/qwerty/[]\ (same WPF layout: Backspace is only on row 0) *@
         <div class="dreamine-vk-row">
             <button type="button" class="dreamine-vk-key dreamine-vk-key-md"
                     tabindex="-1"
@@ -70,7 +64,7 @@
             </button>
         </div>
 
-        @* Row 3: Shift/zxcv/화살표 *@
+        @* Row 3: Shift/zxcv/arrows *@
         <div class="dreamine-vk-row">
             <button type="button" class="dreamine-vk-key dreamine-vk-key-lg @(IsPressedShift ? "is-active" : "")"
                     tabindex="-1"
@@ -99,7 +93,7 @@
                     @onclick="MoveCaretRight">▶</button>
         </div>
 
-        @* Row 4: Ctrl/Space/한영/언어 *@
+        @* Row 4: Ctrl/Space/IME/language *@
         <div class="dreamine-vk-row">
             <button type="button" class="dreamine-vk-key dreamine-vk-key-md"
                     tabindex="-1"
@@ -133,18 +127,18 @@
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
     [Parameter] public EventCallback OnEnter { get; set; }
 
-    // 상태
+    // State
     private bool VirtualShift;
     private bool PhysicalShift;
     private bool VirtualCapsLock;
     private bool PhysicalCapsLock;
     private bool CurrentLangKorean;   // false = en_US, true = ko_KR
-    private bool ImeMode;             // false = 자모/영문 입력 모드, true = 한글 조합 모드
+    private bool ImeMode;             // false = jamo/English input mode, true = Hangul composition mode
     private readonly HangulComposer _composer = new();
     private bool IsPressedShift => VirtualShift || PhysicalShift;
     private bool IsPressedCapsLock => VirtualCapsLock || PhysicalCapsLock;
 
-    // JS 헬퍼 모듈 참조 (없으면 폴백)
+    // JS helper module reference. Falls back when unavailable.
     private IJSObjectReference? _js;
     private DotNetObjectReference<DreamineVirtualKeyboard>? _dotNetRef;
 
@@ -164,7 +158,7 @@
             }
             catch
             {
-                // 정적 파일 서빙이 안 되는 환경(테스트/사전 렌더 등)에서는 폴백 사용.
+                // Fall back when static files are unavailable, such as tests or prerendering.
                 _js = null;
             }
         }
@@ -187,7 +181,7 @@
         _dotNetRef?.Dispose();
     }
 
-    // 키 매핑 — WPF Key.cs 배열과 개념 동일
+    // Key mapping. Conceptually matches the WPF Key.cs arrays.
     private sealed record KeyMap(string Normal, string Shifted = "", string Korean = "", string KoreanShifted = "", string Label = "");
 
     private static readonly KeyMap[] Row0 =
@@ -270,8 +264,7 @@
         await Insert(text);
     }
 
-    // JS interop 결과 컨텍스트 — JS는 camelCase(value/start/end)로 넘기므로
-    // JsonPropertyName으로 매핑한다.
+    // JS interop result context. JS passes camelCase values, so map them explicitly.
     private sealed class VkContext
     {
         [System.Text.Json.Serialization.JsonPropertyName("value")]
@@ -289,9 +282,8 @@
         if (_js is null) return null;
         try
         {
-            // Non-nullable class: JS는 값(object) 또는 null을 반환. null이면 예외가 아니라
-            // 그냥 null 참조로 돌아온다. JSInterop이 nullable class를 직접 처리하지 못하는
-            // 경우가 있어 non-nullable로 받되 catch로 감싼다.
+            // JS returns an object or null. Use a non-nullable type here and let the
+            // catch path handle environments where nullable JSInterop casting fails.
             return await _js.InvokeAsync<VkContext>("getContext");
         }
         catch { return null; }
@@ -302,8 +294,7 @@
         if (_js is null) return false;
         try
         {
-            // JS는 실패 시 -1, 성공 시 새 캐럿 위치를 반환. int? 대신 int를 써서
-            // Blazor JSInterop의 nullable 캐스팅 이슈(InvalidCastException)를 회피.
+            // JS returns -1 on failure or the new caret index on success.
             var result = await _js.InvokeAsync<int>("applyEdit", replaceCount, insertText);
             return result >= 0;
         }
@@ -316,7 +307,7 @@
 
         var ctx = await GetContextAsync();
 
-        // 한글 조합 모드 + 자모라면 HangulComposer로 처리
+        // Use HangulComposer when the IME mode is composing Korean jamo.
         if (CurrentLangKorean && ImeMode && HangulComposer.IsComposableJamo(text))
         {
             if (ctx is not null)
@@ -327,12 +318,12 @@
                     return;
             }
 
-            // 폴백: 로컬 Value 편집
+            // Fallback: edit the local Value.
             await FallbackHangulInsertAsync(text);
             return;
         }
 
-        // 일반 문자
+        // Regular characters.
         _composer.Reset();
         if (ctx is not null)
         {
@@ -350,14 +341,14 @@
         {
             try
             {
-                // JS: 성공하면 새 캐럿 위치(>=0), 실패/대상없음이면 -1.
+                // JS returns the new caret index on success or -1 when no target exists.
                 var result = await _js.InvokeAsync<int>("backspace");
                 if (result >= 0) return;
             }
             catch { }
         }
 
-        // 폴백: Value 끝 한 글자 삭제
+        // Fallback: delete the last character from Value.
         if (string.IsNullOrEmpty(Value)) return;
         Value = Value[..^1];
         await ValueChanged.InvokeAsync(Value);
@@ -381,7 +372,7 @@
         }
     }
 
-    // ── 폴백(로컬 Value 편집) ─────────────────────────────────
+    // Local Value fallback editing.
     private async Task FallbackHangulInsertAsync(string text)
     {
         var before = Value ?? string.Empty;
@@ -407,7 +398,7 @@
         _composer.Reset();
     }
 
-    // 한/영 토글: 한국어 언어일 때만 abc <-> 가 전환. 영어 언어면 무효.
+    // IME toggle: switches abc <-> Hangul only while the Korean layout is active.
     private void ToggleImeMode()
     {
         if (!CurrentLangKorean) return;
@@ -415,11 +406,11 @@
         _composer.Reset();
     }
 
-    // 언어 토글: EN <-> KR. 표시/조합 모드에만 영향.
+    // Language toggle: EN <-> KR. This only affects labels and composition mode.
     private void ToggleLanguage()
     {
         CurrentLangKorean = !CurrentLangKorean;
-        ImeMode = CurrentLangKorean;      // 한국어로 오면 자동으로 한글 입력 모드
+        ImeMode = CurrentLangKorean;      // Korean layout starts in Hangul input mode.
         _composer.Reset();
     }
 
@@ -429,7 +420,7 @@
         await OnEnter.InvokeAsync();
     }
 
-    // 물리 키보드의 CapsLock 상태를 감지해 표시만 동기화한다.
+    // Sync the visual CapsLock state when the physical keyboard exposes it.
     private void OnHostKeyUp(KeyboardEventArgs e)
     {
         try
