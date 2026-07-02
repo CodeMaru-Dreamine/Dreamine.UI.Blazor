@@ -1,0 +1,26 @@
+@*
+    WPF/WinForms/MAUI의 DreamineListBox와 동일한 개념의 Blazor용 목록.
+    클릭으로 선택(@bind-SelectedItem), 더블클릭으로 OnActivate 실행.
+*@
+
+<ul class="dreamine-listbox">
+    @foreach (var item in Items)
+    {
+        <li class="dreamine-listbox-item @(string.Equals(item, SelectedItem, StringComparison.Ordinal) ? "is-selected" : "")"
+            @onclick="() => SelectAsync(item)"
+            @ondblclick="() => OnActivate.InvokeAsync(item)">@item</li>
+    }
+</ul>
+
+@code {
+    [Parameter] public IEnumerable<string> Items { get; set; } = Array.Empty<string>();
+    [Parameter] public string? SelectedItem { get; set; }
+    [Parameter] public EventCallback<string> SelectedItemChanged { get; set; }
+    [Parameter] public EventCallback<string> OnActivate { get; set; }
+
+    private async Task SelectAsync(string item)
+    {
+        SelectedItem = item;
+        await SelectedItemChanged.InvokeAsync(item);
+    }
+}

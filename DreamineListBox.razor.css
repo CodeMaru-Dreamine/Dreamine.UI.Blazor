@@ -1,0 +1,32 @@
+.dreamine-listbox {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    width: 100%;
+    max-width: 320px;
+    border: 1px solid rgba(110, 168, 255, .16);
+    border-radius: 14px;
+    background: rgba(0, 0, 0, .25);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dreamine-listbox-item {
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #f5f7fb;
+    user-select: none;
+    transition: background .12s;
+}
+
+.dreamine-listbox-item:hover {
+    background: rgba(255, 255, 255, .05);
+}
+
+.dreamine-listbox-item.is-selected {
+    background: rgba(73, 178, 255, .16);
+    color: #8dcbff;
+}

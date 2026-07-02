@@ -1,0 +1,42 @@
+@*
+    WPF/WinForms/MAUI의 DreamineButton과 동일한 개념의 Blazor용 버튼.
+    Variant(색상) / Size(크기) / Disabled 를 지원하며 Dreamine 다크 테마를 그대로 재현한다.
+*@
+
+<button type="button"
+        class="dreamine-btn @VariantClass @SizeClass"
+        disabled="@Disabled"
+        @onclick="OnClickHandler">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public DreamineButtonVariant Variant { get; set; } = DreamineButtonVariant.Default;
+    [Parameter] public DreamineButtonSize Size { get; set; } = DreamineButtonSize.Normal;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private string VariantClass => Variant switch
+    {
+        DreamineButtonVariant.Primary => "dreamine-btn-primary",
+        DreamineButtonVariant.Success => "dreamine-btn-success",
+        DreamineButtonVariant.Warning => "dreamine-btn-warning",
+        DreamineButtonVariant.Danger  => "dreamine-btn-danger",
+        DreamineButtonVariant.Ghost   => "dreamine-btn-ghost",
+        _ => "dreamine-btn-default"
+    };
+
+    private string SizeClass => Size switch
+    {
+        DreamineButtonSize.Small => "dreamine-btn-sm",
+        DreamineButtonSize.Large => "dreamine-btn-lg",
+        _ => string.Empty
+    };
+
+    private async Task OnClickHandler()
+    {
+        if (Disabled) return;
+        await OnClick.InvokeAsync();
+    }
+}

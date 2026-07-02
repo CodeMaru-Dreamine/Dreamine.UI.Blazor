@@ -1,0 +1,22 @@
+@*
+    WPF/WinForms/MAUI의 DreamineCheckBox와 동일한 개념의 Blazor용 체크박스.
+    @bind-Checked 로 양방향 바인딩한다.
+*@
+
+<label class="dreamine-check @(Disabled ? "dreamine-check-disabled" : "")">
+    <input type="checkbox" checked="@Checked" disabled="@Disabled" @onchange="OnChange" />
+    <span>@ChildContent</span>
+</label>
+
+@code {
+    [Parameter] public bool Checked { get; set; }
+    [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+
+    private async Task OnChange(ChangeEventArgs e)
+    {
+        Checked = e.Value is bool b && b;
+        await CheckedChanged.InvokeAsync(Checked);
+    }
+}

@@ -1,0 +1,65 @@
+.dreamine-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(110, 168, 255, .16);
+    color: #f5f7fb;
+    font-weight: 700;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    background: rgba(255, 255, 255, .04);
+    transition: transform .15s, border-color .15s, background .15s, box-shadow .15s;
+}
+
+.dreamine-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: rgba(110, 168, 255, .3);
+}
+
+.dreamine-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.dreamine-btn-primary {
+    background: linear-gradient(135deg, rgba(41, 145, 255, .86), rgba(60, 167, 255, .54));
+    border-color: rgba(112, 189, 255, .42);
+}
+
+.dreamine-btn-success {
+    background: linear-gradient(135deg, rgba(34, 197, 94, .82), rgba(34, 197, 94, .45));
+    border-color: rgba(74, 222, 128, .42);
+}
+
+.dreamine-btn-warning {
+    background: linear-gradient(135deg, rgba(251, 191, 36, .85), rgba(251, 191, 36, .5));
+    border-color: rgba(251, 191, 36, .55);
+    color: #1b1300;
+}
+
+.dreamine-btn-danger {
+    background: rgba(220, 38, 38, .16);
+    border-color: rgba(220, 38, 38, .35);
+    color: #fca5a5;
+}
+
+.dreamine-btn-ghost {
+    background: rgba(255, 255, 255, .025);
+    color: #a6b6cf;
+}
+
+.dreamine-btn-sm {
+    padding: 7px 12px;
+    font-size: 13px;
+    border-radius: 10px;
+}
+
+.dreamine-btn-lg {
+    padding: 15px 26px;
+    font-size: 16px;
+    border-radius: 16px;
+}

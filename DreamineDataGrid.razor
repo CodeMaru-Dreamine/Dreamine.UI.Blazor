@@ -1,0 +1,45 @@
+@*
+    WPF/WinForms/MAUI의 DreamineDataGrid와 동일한 개념의 Blazor용 데이터 그리드(읽기 표시용).
+    HeaderContent 에 <th>, RowContent(item) 에 <td> 를 넣으면 된다.
+    행 클릭으로 선택(@bind-SelectedItem), 다시 클릭하면 해제.
+    @typeparam TItem 행 데이터 타입.
+*@
+@typeparam TItem
+
+<div class="dreamine-datagrid-wrap">
+    <table class="dreamine-datagrid">
+        @if (HeaderContent is not null)
+        {
+            <thead>
+                <tr>@HeaderContent</tr>
+            </thead>
+        }
+        <tbody>
+            @foreach (var item in Items)
+            {
+                <tr class="@(EqualityComparer<TItem>.Default.Equals(item, SelectedItem) ? "is-selected" : "")"
+                    @onclick="() => ToggleSelectAsync(item)">
+                    @RowContent?.Invoke(item)
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public IEnumerable<TItem> Items { get; set; } = Array.Empty<TItem>();
+    [Parameter] public TItem? SelectedItem { get; set; }
+    [Parameter] public EventCallback<TItem?> SelectedItemChanged { get; set; }
+    [Parameter] public RenderFragment? HeaderContent { get; set; }
+    [Parameter] public RenderFragment<TItem>? RowContent { get; set; }
+
+    /// <summary>true(기본)면 이미 선택된 행을 다시 클릭했을 때 선택을 해제한다.</summary>
+    [Parameter] public bool AllowDeselect { get; set; } = true;
+
+    private async Task ToggleSelectAsync(TItem item)
+    {
+        var isSame = EqualityComparer<TItem>.Default.Equals(item, SelectedItem);
+        SelectedItem = (AllowDeselect && isSame) ? default : item;
+        await SelectedItemChanged.InvokeAsync(SelectedItem);
+    }
+}

@@ -1,0 +1,54 @@
+.dreamine-lightbulb {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dreamine-lightbulb-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.dreamine-lightbulb-glow {
+    fill: #ffd666;
+    opacity: 0;
+    transition: opacity .18s ease;
+}
+
+.dreamine-lightbulb-glass {
+    fill: rgba(100, 116, 139, .18);
+    stroke: #66758b;
+    stroke-width: 5;
+    transition: fill .18s ease, stroke .18s ease;
+}
+
+.dreamine-lightbulb-filament {
+    fill: none;
+    stroke: #64748b;
+    stroke-width: 5;
+    stroke-linecap: round;
+    transition: stroke .18s ease;
+}
+
+.dreamine-lightbulb-neck,
+.dreamine-lightbulb-base {
+    fill: #708098;
+}
+
+.dreamine-lightbulb-on .dreamine-lightbulb-svg {
+    filter: drop-shadow(0 0 16px rgba(255, 214, 102, .72));
+}
+
+.dreamine-lightbulb-on .dreamine-lightbulb-glow {
+    opacity: .32;
+}
+
+.dreamine-lightbulb-on .dreamine-lightbulb-glass {
+    fill: #ffd666;
+    stroke: #ffc400;
+}
+
+.dreamine-lightbulb-on .dreamine-lightbulb-filament {
+    stroke: #7a4b00;
+}

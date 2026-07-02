@@ -1,0 +1,25 @@
+.dreamine-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #f5f7fb;
+    user-select: none;
+}
+
+.dreamine-check input {
+    width: 18px;
+    height: 18px;
+    accent-color: #49b2ff;
+    cursor: pointer;
+}
+
+.dreamine-check-disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.dreamine-check-disabled input {
+    cursor: not-allowed;
+}

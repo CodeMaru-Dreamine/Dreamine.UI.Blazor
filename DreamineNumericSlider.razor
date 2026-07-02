@@ -1,0 +1,28 @@
+@*
+    WPF의 NumericRangeBehavior 슬라이더에 대응하는 Blazor용 범위 슬라이더.
+    Min~Max 범위로 값을 조절하고 @bind-Value 로 바인딩한다.
+*@
+
+<input type="range" class="dreamine-range"
+       min="@Min" max="@Max" step="@Step"
+       value="@Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+       @oninput="OnInput" />
+
+@code {
+    [Parameter] public double Value { get; set; }
+    [Parameter] public EventCallback<double> ValueChanged { get; set; }
+    [Parameter] public double Min { get; set; } = 0;
+    [Parameter] public double Max { get; set; } = 100;
+    [Parameter] public double Step { get; set; } = 1;
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(),
+                System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out var v))
+        {
+            Value = Math.Clamp(v, Min, Max);
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+}

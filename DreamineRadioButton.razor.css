@@ -1,0 +1,16 @@
+.dreamine-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #f5f7fb;
+    user-select: none;
+}
+
+.dreamine-radio input {
+    width: 17px;
+    height: 17px;
+    accent-color: #49b2ff;
+    cursor: pointer;
+}

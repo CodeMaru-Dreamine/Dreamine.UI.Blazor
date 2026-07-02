@@ -1,0 +1,28 @@
+@*
+    WPF/WinForms/MAUI의 DreamineTextBox / DreaminePasswordBox와 동일한 개념의 Blazor용 입력창.
+    Hint(placeholder) 지원. IsPassword=true 면 비밀번호 입력.
+    @bind-Value 로 양방향 바인딩한다(oninput 기준).
+*@
+
+<input class="dreamine-textbox"
+       type="@(IsPassword ? "password" : "text")"
+       value="@Value"
+       placeholder="@Hint"
+       readonly="@ReadOnly"
+       @oninput="OnInput"
+       @onfocus="OnFocus" />
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string? Hint { get; set; }
+    [Parameter] public bool IsPassword { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public EventCallback OnFocus { get; set; }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        Value = e.Value?.ToString() ?? string.Empty;
+        await ValueChanged.InvokeAsync(Value);
+    }
+}

@@ -1,0 +1,26 @@
+.dreamine-textbox {
+    width: 100%;
+    max-width: 320px;
+    padding: 11px 15px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .04);
+    border: 1px solid rgba(110, 168, 255, .16);
+    color: #f5f7fb;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s;
+}
+
+.dreamine-textbox:focus {
+    border-color: rgba(110, 168, 255, .3);
+}
+
+.dreamine-textbox::placeholder {
+    color: #6f7f98;
+}
+
+.dreamine-textbox[readonly] {
+    opacity: .6;
+    cursor: default;
+}

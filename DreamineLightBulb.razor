@@ -1,0 +1,23 @@
+<span class="dreamine-lightbulb @(IsOn ? "dreamine-lightbulb-on" : "dreamine-lightbulb-off")"
+      style="width:@(Diameter * 1.25)px; height:@(Diameter * 1.65)px;"
+      role="img"
+      aria-label="@AriaLabel">
+    <svg viewBox="0 0 150 198" class="dreamine-lightbulb-svg" aria-hidden="true">
+        <circle class="dreamine-lightbulb-glow" cx="75" cy="50" r="62" />
+        <path class="dreamine-lightbulb-glass" d="M75 4 C40.4 4 25.1 28 25.1 53.8 C25.1 73 41.4 85.5 51 94.2 L99 94.2 C108.6 85.5 124.9 73 124.9 53.8 C124.9 28 109.6 4 75 4 Z" />
+        <path class="dreamine-lightbulb-filament" d="M54 58 C64 40 72 72 84 54 C90 46 96 51 100 58" />
+        <path class="dreamine-lightbulb-neck" d="M46.2 90.3 H103.8 L94.2 115.3 H55.8 Z" />
+        <rect class="dreamine-lightbulb-base" x="53.9" y="100" width="42.2" height="7" rx="3.5" />
+        <rect class="dreamine-lightbulb-base" x="57.7" y="111.5" width="34.6" height="7" rx="3.5" />
+        <rect class="dreamine-lightbulb-base" x="62" y="123" width="26" height="7" rx="3.5" />
+    </svg>
+</span>
+
+@code {
+    [Parameter] public bool IsOn { get; set; }
+    [Parameter] public double Diameter { get; set; } = 96;
+    [Parameter] public string? OnLabel { get; set; } = "Light bulb on";
+    [Parameter] public string? OffLabel { get; set; } = "Light bulb off";
+
+    private string AriaLabel => IsOn ? OnLabel ?? "Light bulb on" : OffLabel ?? "Light bulb off";
+}
