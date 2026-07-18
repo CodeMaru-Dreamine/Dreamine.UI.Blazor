@@ -13,13 +13,22 @@
        @onfocus="OnFocus" />
 
 @code {
+    /// <summary><para>[KO] 텍스트 상자의 현재 값을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the current text-box value.</para></summary>
     [Parameter] public string? Value { get; set; }
+    /// <summary><para>[KO] 텍스트 값이 변경될 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the text value changes.</para></summary>
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    /// <summary><para>[KO] 입력 전 표시할 힌트 텍스트를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the hint text displayed before input.</para></summary>
     [Parameter] public string? Hint { get; set; }
+    /// <summary><para>[KO] 입력을 암호로 마스킹할지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether input is masked as a password.</para></summary>
     [Parameter] public bool IsPassword { get; set; }
+    /// <summary><para>[KO] 사용자가 값을 편집할 수 없는지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether the user is prevented from editing the value.</para></summary>
     [Parameter] public bool ReadOnly { get; set; }
+    /// <summary><para>[KO] 텍스트 상자가 포커스를 받을 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the text box receives focus.</para></summary>
     [Parameter] public EventCallback OnFocus { get; set; }
 
+    /// <summary><para>[KO] 브라우저 입력 값을 현재 텍스트에 반영하고 변경 콜백을 호출합니다.</para><para>[EN] Applies the browser input value to the current text and invokes the change callback.</para></summary>
+    /// <param name="e"><para>[KO] 텍스트 입력 변경 이벤트 인수입니다.</para><para>[EN] The text-input change event arguments.</para></param>
+    /// <returns><para>[KO] 값 변경 전달을 나타내는 작업입니다.</para><para>[EN] A task representing propagation of the value change.</para></returns>
     private async Task OnInput(ChangeEventArgs e)
     {
         Value = e.Value?.ToString() ?? string.Empty;

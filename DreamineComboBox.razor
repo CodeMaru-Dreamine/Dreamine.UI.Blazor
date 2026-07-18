@@ -11,11 +11,18 @@
 </select>
 
 @code {
+    /// <summary><para>[KO] 선택 목록에 표시할 항목을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the items displayed in the selection list.</para></summary>
     [Parameter] public IEnumerable<string> Items { get; set; } = Array.Empty<string>();
+    /// <summary><para>[KO] 현재 선택한 항목을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the currently selected item.</para></summary>
     [Parameter] public string? SelectedItem { get; set; }
+    /// <summary><para>[KO] 선택 항목이 변경될 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the selected item changes.</para></summary>
     [Parameter] public EventCallback<string> SelectedItemChanged { get; set; }
+    /// <summary><para>[KO] 콤보 상자를 비활성화할지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether the combo box is disabled.</para></summary>
     [Parameter] public bool Disabled { get; set; }
 
+    /// <summary><para>[KO] 브라우저 선택 값을 현재 항목에 반영하고 변경 콜백을 호출합니다.</para><para>[EN] Applies the browser selection to the current item and invokes the change callback.</para></summary>
+    /// <param name="e"><para>[KO] 선택 변경 이벤트 인수입니다.</para><para>[EN] The selection change event arguments.</para></param>
+    /// <returns><para>[KO] 선택 변경 전달을 나타내는 작업입니다.</para><para>[EN] A task representing propagation of the selection change.</para></returns>
     private async Task OnChange(ChangeEventArgs e)
     {
         SelectedItem = e.Value?.ToString() ?? string.Empty;

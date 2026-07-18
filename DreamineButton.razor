@@ -11,12 +11,18 @@
 </button>
 
 @code {
+    /// <summary><para>[KO] 버튼 내부에 렌더링할 콘텐츠를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the content rendered inside the button.</para></summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary><para>[KO] 버튼의 의미 기반 색상 변형을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the semantic color variant of the button.</para></summary>
     [Parameter] public DreamineButtonVariant Variant { get; set; } = DreamineButtonVariant.Default;
+    /// <summary><para>[KO] 버튼 크기를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the button size.</para></summary>
     [Parameter] public DreamineButtonSize Size { get; set; } = DreamineButtonSize.Normal;
+    /// <summary><para>[KO] 버튼을 비활성화할지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether the button is disabled.</para></summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary><para>[KO] 버튼을 클릭할 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the button is clicked.</para></summary>
     [Parameter] public EventCallback OnClick { get; set; }
 
+    /// <summary><para>[KO] 현재 색상 변형에 대응하는 CSS 클래스를 가져옵니다.</para><para>[EN] Gets the CSS class corresponding to the current color variant.</para></summary>
     private string VariantClass => Variant switch
     {
         DreamineButtonVariant.Primary => "dreamine-btn-primary",
@@ -27,6 +33,7 @@
         _ => "dreamine-btn-default"
     };
 
+    /// <summary><para>[KO] 현재 크기 변형에 대응하는 CSS 클래스를 가져옵니다.</para><para>[EN] Gets the CSS class corresponding to the current size variant.</para></summary>
     private string SizeClass => Size switch
     {
         DreamineButtonSize.Small => "dreamine-btn-sm",
@@ -34,6 +41,8 @@
         _ => string.Empty
     };
 
+    /// <summary><para>[KO] 활성 상태의 버튼 클릭을 구성된 콜백으로 전달합니다.</para><para>[EN] Forwards an enabled button click to the configured callback.</para></summary>
+    /// <returns><para>[KO] 콜백 호출을 나타내는 작업입니다.</para><para>[EN] A task representing the callback invocation.</para></returns>
     private async Task OnClickHandler()
     {
         if (Disabled) return;

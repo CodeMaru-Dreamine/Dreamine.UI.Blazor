@@ -7,16 +7,18 @@
       style="width:@(Diameter)px; height:@(Diameter)px; @CornerStyle"></span>
 
 @code {
+    /// <summary><para>[KO] LED가 켜져 있는지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether the LED is on.</para></summary>
     [Parameter] public bool IsOn { get; set; }
+    /// <summary><para>[KO] 켜진 LED에 맥동 애니메이션을 적용할지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether a pulse animation is applied to the illuminated LED.</para></summary>
     [Parameter] public bool IsPulse { get; set; }
+    /// <summary><para>[KO] LED 지름을 CSS 픽셀 단위로 가져오거나 설정합니다.</para><para>[EN] Gets or sets the LED diameter in CSS pixels.</para></summary>
     [Parameter] public double Diameter { get; set; } = 24;
 
-    /// <summary>
-    /// 부모가 position:relative인 컨테이너일 때, 이 LED를 모서리에 배지처럼 붙이고 싶으면
-    /// 지정한다(WPF DreamineCheckLed.Corner와 동일한 개념). 지정하지 않으면 일반 인라인 배치.
-    /// </summary>
+    /// <summary><para>[KO] 부모 영역에서 LED를 고정할 선택적 모서리를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the optional corner to which the LED is anchored within its parent.</para></summary>
+    /// <remarks><para>[KO] 부모가 상대 위치 컨테이너일 때 지정하면 LED를 배지처럼 고정하며, 지정하지 않으면 일반 인라인으로 배치합니다.</para><para>[EN] When set inside a relatively positioned parent, the LED is anchored like a badge; otherwise, it remains in normal inline flow.</para></remarks>
     [Parameter] public DreamineCheckLedCorner? Corner { get; set; }
 
+    /// <summary><para>[KO] 선택한 모서리에 대응하는 인라인 CSS 배치 스타일을 가져옵니다.</para><para>[EN] Gets the inline CSS positioning style corresponding to the selected corner.</para></summary>
     private string CornerStyle => Corner switch
     {
         DreamineCheckLedCorner.TopLeft => "position:absolute; top:4px; left:4px;",

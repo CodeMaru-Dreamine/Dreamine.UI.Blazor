@@ -13,11 +13,18 @@
 </ul>
 
 @code {
+    /// <summary><para>[KO] 목록에 표시할 항목을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the items displayed in the list.</para></summary>
     [Parameter] public IEnumerable<string> Items { get; set; } = Array.Empty<string>();
+    /// <summary><para>[KO] 현재 선택한 항목을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the currently selected item.</para></summary>
     [Parameter] public string? SelectedItem { get; set; }
+    /// <summary><para>[KO] 선택 항목이 변경될 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the selected item changes.</para></summary>
     [Parameter] public EventCallback<string> SelectedItemChanged { get; set; }
+    /// <summary><para>[KO] 항목을 활성화할 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when an item is activated.</para></summary>
     [Parameter] public EventCallback<string> OnActivate { get; set; }
 
+    /// <summary><para>[KO] 지정한 항목을 선택하고 구성된 콜백을 순서대로 호출합니다.</para><para>[EN] Selects the specified item and invokes the configured callbacks in order.</para></summary>
+    /// <param name="item"><para>[KO] 선택하고 활성화할 항목입니다.</para><para>[EN] The item to select and activate.</para></param>
+    /// <returns><para>[KO] 콜백 호출을 나타내는 작업입니다.</para><para>[EN] A task representing the callback invocations.</para></returns>
     private async Task SelectAsync(string item)
     {
         SelectedItem = item;

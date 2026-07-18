@@ -9,11 +9,18 @@
 </label>
 
 @code {
+    /// <summary><para>[KO] 체크 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether the check box is checked.</para></summary>
     [Parameter] public bool Checked { get; set; }
+    /// <summary><para>[KO] 체크 상태가 변경될 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the checked state changes.</para></summary>
     [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+    /// <summary><para>[KO] 체크 상자 옆에 렌더링할 콘텐츠를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the content rendered next to the check box.</para></summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary><para>[KO] 체크 상자를 비활성화할지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether the check box is disabled.</para></summary>
     [Parameter] public bool Disabled { get; set; }
 
+    /// <summary><para>[KO] 브라우저 변경 값을 Boolean 상태로 변환하고 변경 콜백을 호출합니다.</para><para>[EN] Converts the browser change value to Boolean state and invokes the change callback.</para></summary>
+    /// <param name="e"><para>[KO] 브라우저 입력 변경 이벤트 인수입니다.</para><para>[EN] The browser input change event arguments.</para></param>
+    /// <returns><para>[KO] 상태 전달을 나타내는 작업입니다.</para><para>[EN] A task representing propagation of the state.</para></returns>
     private async Task OnChange(ChangeEventArgs e)
     {
         Checked = e.Value is bool b && b;

@@ -9,12 +9,20 @@
        @oninput="OnInput" />
 
 @code {
+    /// <summary><para>[KO] 슬라이더의 현재 숫자 값을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the current numeric value of the slider.</para></summary>
     [Parameter] public double Value { get; set; }
+    /// <summary><para>[KO] 숫자 값이 변경될 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the numeric value changes.</para></summary>
     [Parameter] public EventCallback<double> ValueChanged { get; set; }
+    /// <summary><para>[KO] 선택 가능한 최솟값을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the minimum selectable value.</para></summary>
     [Parameter] public double Min { get; set; } = 0;
+    /// <summary><para>[KO] 선택 가능한 최댓값을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the maximum selectable value.</para></summary>
     [Parameter] public double Max { get; set; } = 100;
+    /// <summary><para>[KO] 값 변경 증분을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the value increment.</para></summary>
     [Parameter] public double Step { get; set; } = 1;
 
+    /// <summary><para>[KO] 브라우저 입력을 숫자로 변환하여 값과 변경 콜백에 반영합니다.</para><para>[EN] Converts browser input to a number and applies it to the value and change callback.</para></summary>
+    /// <param name="e"><para>[KO] 범위 입력 변경 이벤트 인수입니다.</para><para>[EN] The range-input change event arguments.</para></param>
+    /// <returns><para>[KO] 값 변경 전달을 나타내는 작업입니다.</para><para>[EN] A task representing propagation of the value change.</para></returns>
     private async Task OnInput(ChangeEventArgs e)
     {
         if (double.TryParse(e.Value?.ToString(),

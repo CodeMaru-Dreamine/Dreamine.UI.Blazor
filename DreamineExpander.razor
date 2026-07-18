@@ -17,11 +17,17 @@
 </div>
 
 @code {
+    /// <summary><para>[KO] 확장 영역의 머리글 텍스트를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the header text of the expandable region.</para></summary>
     [Parameter] public string Header { get; set; } = string.Empty;
+    /// <summary><para>[KO] 콘텐츠가 펼쳐져 있는지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether the content is expanded.</para></summary>
     [Parameter] public bool IsExpanded { get; set; } = true;
+    /// <summary><para>[KO] 확장 상태가 변경될 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the expansion state changes.</para></summary>
     [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
+    /// <summary><para>[KO] 확장 영역 내부에 렌더링할 콘텐츠를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the content rendered inside the expandable region.</para></summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary><para>[KO] 확장 상태를 전환하고 변경 콜백을 호출합니다.</para><para>[EN] Toggles the expansion state and invokes the change callback.</para></summary>
+    /// <returns><para>[KO] 상태 변경 전달을 나타내는 작업입니다.</para><para>[EN] A task representing propagation of the state change.</para></returns>
     private async Task Toggle()
     {
         IsExpanded = !IsExpanded;

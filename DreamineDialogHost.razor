@@ -31,6 +31,7 @@
     private System.Threading.Timer? _blinkTimer;
     private System.Threading.Timer? _secondTimer;
 
+    /// <summary><para>[KO] 대화 상자 요청 구독과 자동 선택 타이머를 초기화합니다.</para><para>[EN] Initializes dialog-request subscription and the automatic-selection timer.</para></summary>
     protected override void OnInitialized()
     {
         DialogService.RequestChanged += OnRequestChanged;
@@ -42,6 +43,7 @@
         }, null, 1000, 1000);
     }
 
+    /// <summary><para>[KO] 현재 요청에 맞게 깜빡임 타이머를 다시 구성하고 컴포넌트 렌더링을 예약합니다.</para><para>[EN] Reconfigures the blink timer for the current request and schedules component rendering.</para></summary>
     private void OnRequestChanged()
     {
         _blinkTimer?.Dispose();
@@ -60,6 +62,7 @@
         InvokeAsync(StateHasChanged);
     }
 
+    /// <summary><para>[KO] 요청 구독을 해제하고 호스트가 소유한 타이머를 해제합니다.</para><para>[EN] Removes the request subscription and disposes timers owned by the host.</para></summary>
     public void Dispose()
     {
         DialogService.RequestChanged -= OnRequestChanged;

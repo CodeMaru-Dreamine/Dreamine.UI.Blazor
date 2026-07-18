@@ -122,9 +122,13 @@
 }
 
 @code {
+    /// <summary><para>[KO] 가상 키보드가 표시되는지 여부를 가져오거나 설정합니다.</para><para>[EN] Gets or sets whether the virtual keyboard is visible.</para></summary>
     [Parameter] public bool IsVisible { get; set; }
+    /// <summary><para>[KO] JavaScript 편집 대상을 사용할 수 없을 때 편집할 대체 입력 값을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the fallback input value edited when no JavaScript target is available.</para></summary>
     [Parameter] public string Value { get; set; } = string.Empty;
+    /// <summary><para>[KO] 대체 입력 값이 변경될 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the fallback input value changes.</para></summary>
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    /// <summary><para>[KO] Enter 키를 누를 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the Enter key is pressed.</para></summary>
     [Parameter] public EventCallback OnEnter { get; set; }
 
     // State
@@ -135,16 +139,23 @@
     private bool CurrentLangKorean;   // false = en_US, true = ko_KR
     private bool ImeMode;             // false = jamo/English input mode, true = Hangul composition mode
     private readonly HangulComposer _composer = new();
+    /// <summary><para>[KO] 가상 또는 물리 Shift 키가 눌린 상태인지 여부를 가져옵니다.</para><para>[EN] Gets whether either the virtual or physical Shift key is pressed.</para></summary>
     private bool IsPressedShift => VirtualShift || PhysicalShift;
+    /// <summary><para>[KO] 가상 또는 물리 Caps Lock이 활성 상태인지 여부를 가져옵니다.</para><para>[EN] Gets whether either virtual or physical Caps Lock is active.</para></summary>
     private bool IsPressedCapsLock => VirtualCapsLock || PhysicalCapsLock;
 
     // JS helper module reference. Falls back when unavailable.
     private IJSObjectReference? _js;
     private DotNetObjectReference<DreamineVirtualKeyboard>? _dotNetRef;
 
+    /// <summary><para>[KO] 현재 언어 선택 버튼에 표시할 레이블을 가져옵니다.</para><para>[EN] Gets the label displayed on the current language-selection button.</para></summary>
     private string LangButtonLabel => CurrentLangKorean ? "KR" : "US";
+    /// <summary><para>[KO] 현재 IME 모드 버튼에 표시할 레이블을 가져옵니다.</para><para>[EN] Gets the label displayed on the current IME-mode button.</para></summary>
     private string ImeButtonLabel => CurrentLangKorean ? (ImeMode ? "가" : "abc") : "abc";
 
+    /// <summary><para>[KO] 첫 렌더링 후 JavaScript 키보드 모듈을 불러오고 물리 키 상태 구독을 시작합니다.</para><para>[EN] Loads the JavaScript keyboard module and begins physical-key-state subscription after the first render.</para></summary>
+    /// <param name="firstRender"><para>[KO] 컴포넌트의 첫 렌더링이면 <see langword="true"/>입니다.</para><para>[EN] <see langword="true"/> when this is the component's first render.</para></param>
+    /// <returns><para>[KO] 렌더링 후 초기화 작업을 나타내는 작업입니다.</para><para>[EN] A task representing post-render initialization.</para></returns>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -164,6 +175,8 @@
         }
     }
 
+    /// <summary><para>[KO] JavaScript 키 상태 구독, 모듈 참조 및 .NET 객체 참조를 비동기로 해제합니다.</para><para>[EN] Asynchronously releases the JavaScript key-state subscription, module reference, and .NET object reference.</para></summary>
+    /// <returns><para>[KO] 비동기 해제 작업입니다.</para><para>[EN] A value task representing asynchronous disposal.</para></returns>
     public async ValueTask DisposeAsync()
     {
         if (_js is not null)
@@ -182,6 +195,12 @@
     }
 
     // Key mapping. Conceptually matches the WPF Key.cs arrays.
+    /// <summary><para>[KO] 키의 기본, Shift, 한국어 및 표시 레이블 매핑을 나타냅니다.</para><para>[EN] Represents default, shifted, Korean, and display-label mappings for a key.</para></summary>
+    /// <param name="Normal"><para>[KO] 기본 입력 값입니다.</para><para>[EN] The normal input value.</para></param>
+    /// <param name="Shifted"><para>[KO] Shift 상태의 입력 값입니다.</para><para>[EN] The shifted input value.</para></param>
+    /// <param name="Korean"><para>[KO] 한국어 입력 값입니다.</para><para>[EN] The Korean input value.</para></param>
+    /// <param name="KoreanShifted"><para>[KO] Shift 상태의 한국어 입력 값입니다.</para><para>[EN] The shifted Korean input value.</para></param>
+    /// <param name="Label"><para>[KO] 입력 값 대신 표시할 선택적 레이블입니다.</para><para>[EN] An optional label displayed instead of the input value.</para></param>
     private sealed record KeyMap(string Normal, string Shifted = "", string Korean = "", string KoreanShifted = "", string Label = "");
 
     private static readonly KeyMap[] Row0 =
@@ -218,6 +237,9 @@
         new(",", "<"), new(".", ">"), new("/", "?"),
     };
 
+    /// <summary><para>[KO] 현재 언어와 수정 키 상태에 맞는 키 표시 문자열을 계산합니다.</para><para>[EN] Computes the key display string for the current language and modifier state.</para></summary>
+    /// <param name="k"><para>[KO] 레이블을 계산할 키 매핑입니다.</para><para>[EN] The key mapping whose label is calculated.</para></param>
+    /// <returns><para>[KO] 화면에 표시할 키 레이블입니다.</para><para>[EN] The key label to display.</para></returns>
     private string KeyLabel(KeyMap k)
     {
         if (!string.IsNullOrEmpty(k.Label))
@@ -240,6 +262,9 @@
         return showUpper ? k.Normal.ToUpper() : k.Normal;
     }
 
+    /// <summary><para>[KO] 특수 키의 너비에 맞는 CSS 클래스를 반환합니다.</para><para>[EN] Returns the CSS class appropriate for the width of a special key.</para></summary>
+    /// <param name="k"><para>[KO] CSS 클래스를 결정할 키 매핑입니다.</para><para>[EN] The key mapping whose CSS class is determined.</para></param>
+    /// <returns><para>[KO] 키에 추가할 CSS 클래스이거나 기본 너비이면 빈 문자열입니다.</para><para>[EN] The CSS class to add to the key, or an empty string for the default width.</para></returns>
     private string KeyClass(KeyMap k)
     {
         if (k.Label == "Esc") return "dreamine-vk-key-sm";
@@ -247,6 +272,9 @@
         return string.Empty;
     }
 
+    /// <summary><para>[KO] 가상 키 클릭을 특수 키 처리 또는 문자 삽입으로 전달합니다.</para><para>[EN] Routes a virtual-key click to special-key handling or character insertion.</para></summary>
+    /// <param name="k"><para>[KO] 클릭된 키의 매핑입니다.</para><para>[EN] The mapping of the clicked key.</para></param>
+    /// <returns><para>[KO] 키 처리 작업입니다.</para><para>[EN] A task representing key processing.</para></returns>
     private async Task OnKeyClick(KeyMap k)
     {
         if (k.Label == "Esc")
@@ -265,18 +293,24 @@
     }
 
     // JS interop result context. JS passes camelCase values, so map them explicitly.
+    /// <summary><para>[KO] JavaScript 입력 요소에서 읽은 값과 선택 범위를 나타냅니다.</para><para>[EN] Represents a value and selection range read from a JavaScript input element.</para></summary>
     private sealed class VkContext
     {
+        /// <summary><para>[KO] 입력 요소의 전체 값을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the complete input-element value.</para></summary>
         [System.Text.Json.Serialization.JsonPropertyName("value")]
         public string Value { get; set; } = string.Empty;
 
+        /// <summary><para>[KO] 선택 범위의 시작 인덱스를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the starting index of the selection range.</para></summary>
         [System.Text.Json.Serialization.JsonPropertyName("start")]
         public int Start { get; set; }
 
+        /// <summary><para>[KO] 선택 범위의 끝 인덱스를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the ending index of the selection range.</para></summary>
         [System.Text.Json.Serialization.JsonPropertyName("end")]
         public int End { get; set; }
     }
 
+    /// <summary><para>[KO] 현재 포커스된 JavaScript 입력 요소의 값과 선택 범위를 가져오려고 시도합니다.</para><para>[EN] Attempts to retrieve the value and selection range of the currently focused JavaScript input element.</para></summary>
+    /// <returns><para>[KO] 입력 컨텍스트이거나 모듈을 사용할 수 없거나 호출에 실패하면 <see langword="null"/>입니다.</para><para>[EN] The input context, or <see langword="null"/> when the module is unavailable or the call fails.</para></returns>
     private async Task<VkContext?> GetContextAsync()
     {
         if (_js is null) return null;
@@ -289,6 +323,10 @@
         catch { return null; }
     }
 
+    /// <summary><para>[KO] JavaScript 입력 요소의 캐럿 앞 문자를 교체하고 새 텍스트를 삽입하려고 시도합니다.</para><para>[EN] Attempts to replace characters before the caret and insert new text in the JavaScript input element.</para></summary>
+    /// <param name="replaceCount"><para>[KO] 캐럿 앞에서 교체할 문자 수입니다.</para><para>[EN] The number of characters to replace before the caret.</para></param>
+    /// <param name="insertText"><para>[KO] 교체 위치에 삽입할 텍스트입니다.</para><para>[EN] The text to insert at the replacement position.</para></param>
+    /// <returns><para>[KO] 편집에 성공하면 <see langword="true"/>, 그렇지 않으면 <see langword="false"/>입니다.</para><para>[EN] <see langword="true"/> if the edit succeeds; otherwise, <see langword="false"/>.</para></returns>
     private async Task<bool> ApplyEditAsync(int replaceCount, string insertText)
     {
         if (_js is null) return false;
@@ -301,6 +339,9 @@
         catch { return false; }
     }
 
+    /// <summary><para>[KO] 현재 언어 및 IME 상태에 따라 텍스트를 포커스 입력 요소 또는 대체 값에 삽입합니다.</para><para>[EN] Inserts text into the focused input element or fallback value according to the current language and IME state.</para></summary>
+    /// <param name="text"><para>[KO] 삽입할 텍스트입니다.</para><para>[EN] The text to insert.</para></param>
+    /// <returns><para>[KO] 삽입 작업입니다.</para><para>[EN] A task representing the insertion operation.</para></returns>
     private async Task Insert(string text)
     {
         if (string.IsNullOrEmpty(text)) return;
@@ -334,6 +375,8 @@
         await FallbackAppendAsync(text);
     }
 
+    /// <summary><para>[KO] 포커스 입력 요소 또는 대체 값에서 캐럿 앞 문자를 삭제합니다.</para><para>[EN] Deletes the character before the caret from the focused input element or fallback value.</para></summary>
+    /// <returns><para>[KO] 삭제 작업입니다.</para><para>[EN] A task representing the deletion operation.</para></returns>
     private async Task Backspace()
     {
         _composer.Reset();
@@ -354,6 +397,8 @@
         await ValueChanged.InvokeAsync(Value);
     }
 
+    /// <summary><para>[KO] 한글 조합 상태를 초기화하고 JavaScript 입력 요소의 캐럿을 왼쪽으로 이동합니다.</para><para>[EN] Resets Hangul composition and moves the caret of the JavaScript input element to the left.</para></summary>
+    /// <returns><para>[KO] 캐럿 이동 작업입니다.</para><para>[EN] A task representing the caret movement.</para></returns>
     private async Task MoveCaretLeft()
     {
         _composer.Reset();
@@ -363,6 +408,8 @@
         }
     }
 
+    /// <summary><para>[KO] 한글 조합 상태를 초기화하고 JavaScript 입력 요소의 캐럿을 오른쪽으로 이동합니다.</para><para>[EN] Resets Hangul composition and moves the caret of the JavaScript input element to the right.</para></summary>
+    /// <returns><para>[KO] 캐럿 이동 작업입니다.</para><para>[EN] A task representing the caret movement.</para></returns>
     private async Task MoveCaretRight()
     {
         _composer.Reset();
@@ -373,6 +420,9 @@
     }
 
     // Local Value fallback editing.
+    /// <summary><para>[KO] JavaScript 편집을 사용할 수 없을 때 로컬 값의 끝에서 한글 자모를 조합합니다.</para><para>[EN] Composes Hangul jamo at the end of the local value when JavaScript editing is unavailable.</para></summary>
+    /// <param name="text"><para>[KO] 조합할 한글 자모입니다.</para><para>[EN] The Hangul jamo to compose.</para></param>
+    /// <returns><para>[KO] 로컬 값과 변경 콜백 갱신 작업입니다.</para><para>[EN] A task representing the local-value and change-callback update.</para></returns>
     private async Task FallbackHangulInsertAsync(string text)
     {
         var before = Value ?? string.Empty;
@@ -384,14 +434,19 @@
         await ValueChanged.InvokeAsync(Value);
     }
 
+    /// <summary><para>[KO] JavaScript 편집을 사용할 수 없을 때 텍스트를 로컬 값 끝에 추가합니다.</para><para>[EN] Appends text to the local value when JavaScript editing is unavailable.</para></summary>
+    /// <param name="text"><para>[KO] 추가할 텍스트입니다.</para><para>[EN] The text to append.</para></param>
+    /// <returns><para>[KO] 로컬 값과 변경 콜백 갱신 작업입니다.</para><para>[EN] A task representing the local-value and change-callback update.</para></returns>
     private async Task FallbackAppendAsync(string text)
     {
         Value = (Value ?? string.Empty) + text;
         await ValueChanged.InvokeAsync(Value);
     }
 
+    /// <summary><para>[KO] 가상 Shift 키 상태를 전환합니다.</para><para>[EN] Toggles the virtual Shift-key state.</para></summary>
     private void ToggleShift() => VirtualShift = !VirtualShift;
 
+    /// <summary><para>[KO] 가상 Caps Lock 상태를 전환하고 진행 중인 한글 조합을 초기화합니다.</para><para>[EN] Toggles virtual Caps Lock and resets any in-progress Hangul composition.</para></summary>
     private void ToggleCapsLock()
     {
         VirtualCapsLock = !VirtualCapsLock;
@@ -399,6 +454,7 @@
     }
 
     // IME toggle: switches abc <-> Hangul only while the Korean layout is active.
+    /// <summary><para>[KO] 한국어 레이아웃에서 영문 자모 입력과 한글 조합 모드를 전환합니다.</para><para>[EN] Toggles between raw alphabet/jamo input and Hangul composition in the Korean layout.</para></summary>
     private void ToggleImeMode()
     {
         if (!CurrentLangKorean) return;
@@ -407,6 +463,7 @@
     }
 
     // Language toggle: EN <-> KR. This only affects labels and composition mode.
+    /// <summary><para>[KO] 영어와 한국어 레이아웃을 전환하고 한국어 선택 시 조합 모드를 활성화합니다.</para><para>[EN] Toggles between English and Korean layouts and enables composition when Korean is selected.</para></summary>
     private void ToggleLanguage()
     {
         CurrentLangKorean = !CurrentLangKorean;
@@ -414,6 +471,8 @@
         _composer.Reset();
     }
 
+    /// <summary><para>[KO] 한글 조합을 초기화하고 구성된 Enter 콜백을 호출합니다.</para><para>[EN] Resets Hangul composition and invokes the configured Enter callback.</para></summary>
+    /// <returns><para>[KO] Enter 콜백 호출을 나타내는 작업입니다.</para><para>[EN] A task representing the Enter callback invocation.</para></returns>
     private async Task OnEnterClicked()
     {
         _composer.Reset();
@@ -421,6 +480,8 @@
     }
 
     // Sync the visual CapsLock state when the physical keyboard exposes it.
+    /// <summary><para>[KO] 물리 키보드 이벤트에서 Caps Lock 상태를 읽어 시각적 상태와 동기화합니다.</para><para>[EN] Reads Caps Lock state from a physical-keyboard event and synchronizes the visual state.</para></summary>
+    /// <param name="e"><para>[KO] 브라우저 키보드 이벤트 인수입니다.</para><para>[EN] The browser keyboard event arguments.</para></param>
     private void OnHostKeyUp(KeyboardEventArgs e)
     {
         try
@@ -432,6 +493,10 @@
         catch { }
     }
 
+    /// <summary><para>[KO] JavaScript에서 전달된 물리 Shift 및 Caps Lock 상태를 적용하고 다시 렌더링합니다.</para><para>[EN] Applies physical Shift and Caps Lock state received from JavaScript and requests a rerender.</para></summary>
+    /// <param name="shift"><para>[KO] 물리 Shift 키가 눌렸으면 <see langword="true"/>입니다.</para><para>[EN] <see langword="true"/> if the physical Shift key is pressed.</para></param>
+    /// <param name="capsLock"><para>[KO] 물리 Caps Lock이 활성화됐으면 <see langword="true"/>입니다.</para><para>[EN] <see langword="true"/> if physical Caps Lock is active.</para></param>
+    /// <returns><para>[KO] 상태 변경 렌더링 작업입니다.</para><para>[EN] A task representing rendering after the state change.</para></returns>
     [Microsoft.JSInterop.JSInvokable]
     public Task DreamineVkKeyboardStateChanged(bool shift, bool capsLock)
     {

@@ -11,12 +11,19 @@
 </label>
 
 @code {
+    /// <summary><para>[KO] 상호 배타적 라디오 그룹의 이름을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the name of the mutually exclusive radio group.</para></summary>
     [Parameter] public string Name { get; set; } = string.Empty;
+    /// <summary><para>[KO] 이 라디오 버튼이 나타내는 값을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the value represented by this radio button.</para></summary>
     [Parameter] public string Value { get; set; } = string.Empty;
+    /// <summary><para>[KO] 그룹에서 현재 선택된 값을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the value currently selected in the group.</para></summary>
     [Parameter] public string? SelectedValue { get; set; }
+    /// <summary><para>[KO] 선택 값이 변경될 때 호출할 콜백을 가져오거나 설정합니다.</para><para>[EN] Gets or sets the callback invoked when the selected value changes.</para></summary>
     [Parameter] public EventCallback<string> SelectedValueChanged { get; set; }
+    /// <summary><para>[KO] 라디오 버튼 옆에 렌더링할 콘텐츠를 가져오거나 설정합니다.</para><para>[EN] Gets or sets the content rendered next to the radio button.</para></summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary><para>[KO] 이 라디오 버튼의 값을 선택하고 변경 콜백을 호출합니다.</para><para>[EN] Selects this radio button's value and invokes the change callback.</para></summary>
+    /// <returns><para>[KO] 선택 변경 전달을 나타내는 작업입니다.</para><para>[EN] A task representing propagation of the selection change.</para></returns>
     private async Task OnChange()
     {
         SelectedValue = Value;
